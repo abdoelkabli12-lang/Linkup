@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>Edit Profile - Linkup</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="font-sans antialiased min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{{ route('dashboard') }}" class="flex items-center">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span class="ml-2 text-xl font-bold text-gray-800">Linkup</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ route('dashboard') }}" class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-900">Edit Your Profile</h2>
+                <p class="text-gray-600 mt-1">Update your personal information and preferences</p>
+            </div>
+
+            <!-- Success/Error Messages -->
+            @if(session('success'))
+                <div class="m-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                        <span class="text-green-700">{{ session('success') }}</span>
+                    </div>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="m-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-3"></i>
+                        <div>
+                            <p class="font-medium text-red-800">Please fix the following errors:</p>
+                            <ul class="mt-2 text-sm text-red-700 space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>• {{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Profile Form -->
+            <form method="POST" action="{{ route('profile.update') }}" class="p-6 space-y-8" enctype="multipart/form-data">
+                @csrf
+                @method('PATCH')
+
+                <!-- Profile Picture -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Profile Picture</h3>
+                    <div class="flex items-center space-x-6">
+                        <div class="relative">
+                            <div class="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
+                                @if(auth()->user()->image)
+                                    <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}" 
+                                         alt="Profile" 
+                                         class="w-full h-full object-cover">
+                                @else
+                                    <i class="fas fa-user text-indigo-600 text-5xl"></i>
+                                @endif
+                            </div>
+                            <div class="absolute bottom-0 right-0 w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors">
+                                <label for="profile_picture" class="cursor-pointer">
+                                    <i class="fas fa-camera text-white"></i>
+                                </label>
+                                <input type="file" 
+                                       id="profile_picture" 
+                                       name="profile_picture" 
+                                       class="hidden"
+                                       accept="image/*">
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-600">
+                                Upload a clear photo of yourself. JPG, PNG, or GIF formats are allowed.
+                            </p>
+                            <p class="text-xs text-gray-500 mt-2">
+                                Maximum file size: 5MB
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                First Name
+                            </label>
+                            <input type="text" 
+                                   id="first_name" 
+                                   name="first_name" 
+                                   value="{{ old('first_name', auth()->user()->first_name) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                   required>
+                        </div>
+
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                Last Name
+                            </label>
+                            <input type="text" 
+                                   id="last_name" 
+                                   name="last_name" 
+                                   value="{{ old('last_name', auth()->user()->last_name) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                   required>
+                        </div>
+
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                                Username
+                            </label>
+                            <input type="text" 
+                                   id="username" 
+                                   name="username" 
+                                   value="{{ old('username', auth()->user()->username) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                   required>
+                            <p class="mt-2 text-xs text-gray-500">This will be your unique identifier on Linkup</p>
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email Address
+                            </label>
+                            <input type="email" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ old('email', auth()->user()->email) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                   required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About & Bio -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">About You</h3>
+                    <div>
+                        <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">
+                            Bio
+                        </label>
+                        <textarea id="bio" 
+                                  name="bio" 
+                                  rows="4"
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                  placeholder="Tell us about yourself...">{{ old('bio', auth()->user()->bio) }}</textarea>
+                        <p class="mt-2 text-xs text-gray-500">
+                            A short bio helps others get to know you better. Max 250 characters.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Location & Industry -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Professional Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">
+                                Location
+                            </label>
+                            <input type="text" 
+                                   id="location" 
+                                   name="location" 
+                                   value="{{ old('location', auth()->user()->location) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                   placeholder="City, Country">
+                        </div>
+
+                        <div>
+                            <label for="industry" class="block text-sm font-medium text-gray-700 mb-2">
+                                Industry
+                            </label>
+                            <select id="industry" 
+                                    name="industry"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                <option value="">Select an industry</option>
+                                <option value="Technology" {{ old('industry', auth()->user()->industry) == 'Technology' ? 'selected' : '' }}>Technology</option>
+                                <option value="Healthcare" {{ old('industry', auth()->user()->industry) == 'Healthcare' ? 'selected' : '' }}>Healthcare</option>
+                                <option value="Finance" {{ old('industry', auth()->user()->industry) == 'Finance' ? 'selected' : '' }}>Finance</option>
+                                <option value="Education" {{ old('industry', auth()->user()->industry) == 'Education' ? 'selected' : '' }}>Education</option>
+                                <option value="Marketing" {{ old('industry', auth()->user()->industry) == 'Marketing' ? 'selected' : '' }}>Marketing</option>
+                                <option value="Design" {{ old('industry', auth()->user()->industry) == 'Design' ? 'selected' : '' }}>Design</option>
+                                <option value="Other" {{ old('industry', auth()->user()->industry) == 'Other' ? 'selected' : '' }}>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interests -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Interests</h3>
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-600">
+                            Select interests that match your professional background and hobbies
+                        </p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            @php
+                                $allInterests = ['Programming', 'Design', 'Startups', 'Tech', 'Marketing', 'AI', 'Blockchain', 'Cybersecurity', 'Cloud Computing', 'Data Science', 'Mobile Development', 'Web Development', 'UI/UX', 'Photography', 'Music', 'Sports', 'Travel', 'Cooking', 'Reading', 'Gaming'];
+                                $userInterests = json_decode(auth()->user()->interests ?? '[]', true);
+                            @endphp
+                            
+                            @foreach($allInterests as $interest)
+                                <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" 
+                                           name="interests[]" 
+                                           value="{{ $interest }}"
+                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                           {{ in_array($interest, $userInterests) ? 'checked' : '' }}>
+                                    <span class="ml-3 text-sm text-gray-700">{{ $interest }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                            <!-- Form Actions -->
+<div class="pt-6 border-t border-gray-200 flex justify-end space-x-4">
+    <a href="{{ route('dashboard') }}" 
+       class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+        Cancel
+    </a>
+    <button type="submit" 
+            class="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center">
+        <i class="fas fa-save mr-2"></i>
+        Save Changes
+    </button>
+</div>
