@@ -2,7 +2,9 @@
 
 ALTER TABLE users ADD COLUMN username VARCHAR(100) NOT NULL AFTER name;
 
-ALTER TABLE users DROP username;
+
 
 
   SELECT * FROM users;
+    
+    UPDATE users SET role = 'admin' WHERE email = 'abdo.el.kabli12@gmail.com';

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('bio')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('role')->default('user')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -40,12 +41,17 @@ return new class extends Migration
             $table->integer('last_activity')->index();
         });
 
-        Schema::create('friend_request', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('request_sender_id')->nullable();
-            $table->string('status')->nullable();
-        });
+        Schema::create('friend_requests', function (Blueprint $table) {
+    // 1. Standard auto-incrementing ID (1, 2, 3...)
+    $table->id(); 
+    
+    // 2. Both foreign keys should match the User ID type (BigInt)
+    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->foreignId('request_sender_id')->constrained('users')->cascadeOnDelete();
+    
+    $table->string('status')->default('pending'); // Set a default!
+    $table->timestamps(); // Adds created_at / updated_at automatically
+});
     }
 
     /**

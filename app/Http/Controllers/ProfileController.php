@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Models\PostAction;
 
 class ProfileController extends Controller
 {
@@ -52,8 +53,7 @@ class ProfileController extends Controller
         
         if ($request->hasFile('profile_picture')) {
             // Delete old profile picture if exists
-            // We use 'disk("public")' because that's where we store them.
-            // This cleanly handles the path "profile-pictures/filename.jpg"
+            // use 'disk("public")' because that's where to store them.
             if ($user->profile_picture) {
                 Storage::disk('public')->delete($user->profile_picture);
             }
@@ -62,7 +62,7 @@ class ProfileController extends Controller
             $file = $request->file('profile_picture');
             $fileName = 'profile_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
             
-            // This saves to storage/app/public/profile-pictures
+            // save to storage/app/public/profile-pictures
             $path = $file->storeAs('profile-pictures', $fileName, 'public');
             $profilePicturePath = $path;
         }
@@ -80,7 +80,7 @@ class ProfileController extends Controller
             'bio' => $request->bio,
         ];
 
-        // Only add fields if they exist in the database (Dynamic Safety Check)
+        // add fields if they exist in the database
         $tableColumns = DB::getSchemaBuilder()->getColumnListing('users');
         
         if (in_array('location', $tableColumns)) {
@@ -105,6 +105,25 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')
             ->with('success', 'Profile updated successfully!');
     }
+
+    public function show(User $user)
+{
+    // Fetch the friend with their posts and the count of their interactions
+    $user = $user->loadCount(['posts', 'likes', 'comments'])
+        ->load([
+            'posts' => function($query) {
+            $query->latest();
+        }]);
+
+    // Fetch the recent interactions (Likes and Comments) this friend has made
+    $interactions = PostAction::where('user_id', $user->id)
+        ->with('post.user') // To show which post they interacted with
+        ->latest()
+        ->take(10)
+        ->get();
+
+    return view('profile.show', compact('user', 'interactions'));
+}
 
     /**
      * Delete the user's account.

@@ -1,7 +1,8 @@
 <?php
 
-return [
 
+return [
+    
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -12,9 +13,9 @@ return [
     | other UI elements where an application name needs to be displayed.
     |
     */
-
+    
     'name' => env('APP_NAME', 'Laravel'),
-
+    
     /*
     |--------------------------------------------------------------------------
     | Application Environment
@@ -25,9 +26,9 @@ return [
     | services the application utilizes. Set this in your ".env" file.
     |
     */
-
+    
     'env' => env('APP_ENV', 'production'),
-
+    
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode
@@ -38,9 +39,9 @@ return [
     | application. If disabled, a simple generic error page is shown.
     |
     */
-
+    
     'debug' => (bool) env('APP_DEBUG', false),
-
+    
     /*
     |--------------------------------------------------------------------------
     | Application URL
@@ -51,9 +52,9 @@ return [
     | the application so that it's available within Artisan commands.
     |
     */
-
+    
     'url' => env('APP_URL', 'http://localhost'),
-
+    
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
@@ -122,5 +123,6 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
 
 ];

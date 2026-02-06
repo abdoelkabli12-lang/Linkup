@@ -1,5 +1,12 @@
+@auth
+    <script>
+        window.currentUserId = {{ auth()->id() }};
+    </script>
+@endauth
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,11 +29,14 @@
             }
         }
     </script>
-    
+
+    @vite(['resources/js/app.js'])
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body class="font-sans antialiased min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
-    <nav class="bg-white shadow-md">
+    <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -36,65 +46,95 @@
                         </svg>
                         <span class="ml-2 text-xl font-bold text-gray-800">Linkup</span>
                     </a>
+
                     <div class="hidden md:ml-10 md:flex md:space-x-8">
-                        <a href="{{ route('dashboard') }}" class="text-indigo-600 border-b-2 border-indigo-600 px-3 py-2 text-sm font-medium">Discover</a>
-                        <a href="#" class="text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent px-3 py-2 text-sm font-medium">Connections</a>
-                        <a href="#" class="text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent px-3 py-2 text-sm font-medium">Messages</a>
-                        <a href="#" class="text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent px-3 py-2 text-sm font-medium">Notifications</a>
+                        <a href="{{ route('dashboard') }}"
+                            class="{{ request()->routeIs('dashboard') ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent' }} px-3 py-2 text-sm font-medium transition-colors">
+                            Discover
+                        </a>
+
+                        <a href="{{ route('connections') }}"
+                            class="{{ request()->routeIs('connections') ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent' }} px-3 py-2 text-sm font-medium transition-colors">
+                            Connections
+                        </a>
+
+                        <a href="{{ route('posts.store') }}"
+                            class="{{ request()->routeIs('posts.*') ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent' }} px-3 py-2 text-sm font-medium transition-colors">
+                            Posts
+                        </a>
+
+                        <a href="{{ route('posts.feeds') }}"
+                            class="{{ request()->routeIs('posts.*') ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent' }} px-3 py-2 text-sm font-medium transition-colors">
+                            Feed
+                        </a>
+
+                        <a href="#" class="text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent px-3 py-2 text-sm font-medium transition-colors">
+                            Messages
+                        </a>
+                        <a href="{{ route('notifications') }}"
+                            class="{{ request()->routeIs('notifications') ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent' }} px-3 py-2 text-sm font-medium transition-colors">
+                            Notifications
+                        </a>
+
                     </div>
                 </div>
+
                 <div class="flex items-center space-x-4">
-                    
-                    <form method="GET" action="{{ route('dashboard') }}" class="relative">
-                        <input type="text" 
-                               name="search"
-                               value="{{ request('search') }}"
-                               placeholder="Search users..." 
-                               class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64">
+                    <form method="GET" action="{{ route('dashboard') }}" class="relative hidden md:block">
+                        <input type="text"
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Search users..."
+                            class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 transition-shadow">
                         <button type="submit" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                             <i class="fas fa-search"></i>
                         </button>
                     </form>
-                    
+
                     <div class="relative" id="userDropdown">
                         <button onclick="toggleDropdown()" class="flex items-center space-x-2 focus:outline-none hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-                            <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
+                            <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden border border-indigo-50">
                                 @if(Auth::user()->profile_picture)
-                                    <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" class="w-full h-full object-cover">
+                                <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" class="w-full h-full object-cover">
                                 @else
-                                    <i class="fas fa-user text-indigo-600"></i>
+                                <i class="fas fa-user text-indigo-600"></i>
                                 @endif
                             </div>
-                            <span class="text-sm font-medium text-gray-700">{{ Auth::user()->first_name ?? Auth::user()->username ?? 'User' }}</span>
-                            <i class="fas fa-chevron-down text-gray-400"></i>
+                            <span class="hidden md:block text-sm font-medium text-gray-700">{{ Auth::user()->first_name }}</span>
+                            <i class="fas fa-chevron-down text-gray-400 text-xs hidden md:block"></i>
                         </button>
-                        
-                        <div id="dropdownMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 hidden border border-gray-200">
+
+                        <div id="dropdownMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 hidden border border-gray-200 ring-1 ring-black ring-opacity-5">
                             <div class="px-4 py-3 border-b border-gray-100">
-                                <p class="text-sm font-medium text-gray-900">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</p>
+                                <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</p>
                                 <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
                             </div>
-                            
+
                             <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-user-edit text-indigo-500 mr-3 w-5"></i>
+                                <i class="fas fa-user-edit text-indigo-500 mr-3 w-4"></i>
                                 Edit Profile
                             </a>
-                            
+
                             <a href="#" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-cog text-gray-500 mr-3 w-5"></i>
+                                <i class="fas fa-cog text-gray-400 mr-3 w-4"></i>
                                 Settings
                             </a>
-                            
-                            <a href="#" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-question-circle text-gray-500 mr-3 w-5"></i>
-                                Help & Support
+
+                            @auth
+                            @if(Auth::user()->role === 'admin')
+                            <a href="{{ route('admin.index') }}" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-cog text-gray-400 mr-3 w-4"></i>
+                                Admin
                             </a>
-                            
+                            @endif
+                            @endauth
+
+
                             <div class="border-t border-gray-100 mt-1">
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-gray-50 transition-colors">
-                                        <i class="fas fa-sign-out-alt mr-3 w-5"></i>
+                                        <i class="fas fa-sign-out-alt mr-3 w-4"></i>
                                         Log Out
                                     </button>
                                 </form>
@@ -156,124 +196,120 @@
                         <button id="refreshBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                             <i class="fas fa-sync-alt mr-2"></i> Refresh
                         </button>
-                        <select class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option>Sort by: Recently Added</option>
-                            <option>Sort by: Alphabetical</option>
-                            <option>Sort by: Common Interests</option>
-                        </select>
+                        <form method="GET" action="{{ route('dashboard') }}" class="flex">
+                            @if(request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
+                            <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Sort by: Recently Added</option>
+                                <option value="alphabetical" {{ request('sort') == 'alphabetical' ? 'selected' : '' }}>Sort by: Alphabetical</option>
+                            </select>
+                        </form>
                     </div>
                 </div>
             </div>
 
             <div class="p-6">
                 @if($users->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        @foreach($users as $user)
-                            <div class="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                                <div class="flex items-start justify-between mb-4">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="relative">
-                                            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
-                                                @if($user->profile_picture)
-                                                    <img src="{{ asset('storage/' . $user->profile_picture) }}" 
-                                                         alt="{{ $user->first_name }}" 
-                                                         class="w-full h-full object-cover">
-                                                @else
-                                                    <i class="fas fa-user text-indigo-600 text-2xl"></i>
-                                                @endif
-                                            </div>
-                                            @if($user->is_online)
-                                                <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-                                            @endif
-                                        </div>
-                                        <div>
-                                            <h3 class="font-bold text-gray-900">{{ $user->first_name }} {{ $user->last_name }}</h3>
-                                            <p class="text-sm text-gray-500">@{{ $user->username }}</p>
-                                            <div class="flex items-center mt-1">
-                                                <i class="fas fa-map-marker-alt text-gray-400 text-xs mr-1"></i>
-                                                <span class="text-xs text-gray-600">{{ $user->location ?? 'Unknown location' }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <button class="add-friend-btn" data-user-id="{{ $user->id }}">
-                                        @if($user->friend_request_pending)
-                                            <div class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors">
-                                                <i class="fas fa-clock mr-2"></i>Pending
-                                            </div>
-                                        @elseif($user->is_friend)
-                                            <div class="px-4 py-2 bg-green-100 text-green-700 rounded-lg">
-                                                <i class="fas fa-check mr-2"></i>Connected
-                                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach($users as $user)
+                    <div class="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="relative">
+                                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
+                                        @if($user->profile_picture)
+                                        <img src="{{ asset('storage/' . $user->profile_picture) }}"
+                                            alt="{{ $user->first_name }}"
+                                            class="w-full h-full object-cover">
                                         @else
-                                            <div class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                                <i class="fas fa-user-plus mr-2"></i>Add Friend
-                                            </div>
+                                        <i class="fas fa-user text-indigo-600 text-2xl"></i>
                                         @endif
-                                    </button>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <p class="text-gray-700 text-sm line-clamp-2">
-                                        {{ $user->bio ?? 'No bio available.' }}
-                                    </p>
-                                </div>
-                                
-                                <div class="flex flex-wrap gap-2 mb-4">
-                                    @if($user->interests && count(json_decode($user->interests)) > 0)
-                                        @foreach(json_decode($user->interests) as $interest)
-                                            <span class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs">
-                                                {{ $interest }}
-                                            </span>
-                                        @endforeach
-                                    @else
-                                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                                            No interests listed
-                                        </span>
+                                    </div>
+                                    @if($user->is_online)
+                                    <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                                     @endif
                                 </div>
-                                
-                                <div class="flex justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
-                                    <div class="text-center">
-                                        <p class="font-bold text-gray-900">{{ $user->connections_count ?? 0 }}</p>
-                                        <p>Connections</p>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="font-bold text-gray-900">{{ $user->mutual_friends ?? 0 }}</p>
-                                        <p>Mutual</p>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="font-bold text-gray-900">{{ $user->industry ?? 'N/A' }}</p>
-                                        <p>Industry</p>
+                                <div>
+                                    <h3 class="font-bold text-gray-900">{{ $user->first_name }} {{ $user->last_name }}</h3>
+                                    <p class="text-sm text-gray-500">{{ $user->username }}</p>
+                                    <div class="flex items-center mt-1">
+                                        <i class="fas fa-map-marker-alt text-gray-400 text-xs mr-1"></i>
+                                        <span class="text-xs text-gray-600">{{ $user->location ?? 'Unknown location' }}</span>
                                     </div>
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
-                    
-                    <div class="mt-8 flex justify-center">
-                        <nav class="flex items-center space-x-2">
-                            <button class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="px-3 py-2 bg-indigo-600 text-white rounded-lg">1</button>
-                            <button class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">2</button>
-                            <button class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </nav>
-                    </div>
-                @else
-                    <div class="text-center py-12">
-                        <div class="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-users text-indigo-600 text-3xl"></i>
+
+                            @if($user->friend_request_pending)
+                            <div class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg">
+                                <i class="fas fa-clock mr-2"></i>Pending
+                            </div>
+                            @elseif($user->is_friend)
+                            <div class="px-4 py-2 bg-green-100 text-green-700 rounded-lg">
+                                <i class="fas fa-check mr-2"></i>Connected
+                            </div>
+                            @else
+                            <form action="{{ route('connections.store', $user->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                    <i class="fas fa-user-plus mr-2"></i>Add Friend
+                                </button>
+                            </form>
+                            @endif
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">No users found</h3>
-                        <p class="text-gray-600 mb-6">We couldn't find anyone matching your search.</p>
-                        <a href="{{ route('dashboard') }}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                            <i class="fas fa-sync-alt mr-2"></i>Clear Search
-                        </a>
+
+                        <div class="mb-4">
+                            <p class="text-gray-700 text-sm line-clamp-2">
+                                {{ $user->bio ?? 'No bio available.' }}
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            @if($user->interests && count(json_decode($user->interests)) > 0)
+                            @foreach(json_decode($user->interests) as $interest)
+                            <span class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs">
+                                {{ $interest }}
+                            </span>
+                            @endforeach
+                            @else
+                            <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                                No interests listed
+                            </span>
+                            @endif
+                        </div>
+
+                        <div class="flex justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
+                            <div class="text-center">
+                                <p class="font-bold text-gray-900">{{ $user->connections_count ?? 0 }}</p>
+                                <p>Connections</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="font-bold text-gray-900">{{ $user->mutual_friends ?? 0 }}</p>
+                                <p>Mutual</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="font-bold text-gray-900">{{ $user->industry ?? 'N/A' }}</p>
+                                <p>Industry</p>
+                            </div>
+                        </div>
                     </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-8 flex justify-center">
+                    {{ $users->links() }}
+                </div>
+                @else
+                <div class="text-center py-12">
+                    <div class="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-users text-indigo-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">No users found</h3>
+                    <p class="text-gray-600 mb-6">We couldn't find anyone matching your search.</p>
+                    <a href="{{ route('dashboard') }}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Clear Search
+                    </a>
+                </div>
                 @endif
             </div>
         </div>
@@ -289,82 +325,33 @@
     </div>
 
     <script>
-        // Dropdown functionality
         function toggleDropdown() {
             const dropdown = document.getElementById('dropdownMenu');
             dropdown.classList.toggle('hidden');
         }
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('dropdownMenu');
             const button = document.querySelector('#userDropdown button');
-            
+
             if (!button.contains(event.target) && !dropdown.contains(event.target)) {
                 dropdown.classList.add('hidden');
             }
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Add Friend Functionality
-            const addFriendButtons = document.querySelectorAll('.add-friend-btn');
-            
-            addFriendButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    
-                    // Show loading state
-                    this.innerHTML = '<div class="px-4 py-2 bg-indigo-400 text-white rounded-lg"><i class="fas fa-spinner fa-spin mr-2"></i>Sending...</div>';
-                    this.disabled = true;
-                    
-                    // Simulate API call
-                    setTimeout(() => {
-                        this.innerHTML = '<div class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"><i class="fas fa-clock mr-2"></i>Pending</div>';
-                        showNotification('Friend request sent successfully!', 'success');
-                    }, 1000);
-                });
-            });
-            
-            // Notification function
-            function showNotification(message, type) {
-                const notification = document.createElement('div');
-                notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 translate-x-full ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`;
-                notification.innerHTML = `
-                    <div class="flex items-center">
-                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
-                        <span>${message}</span>
-                    </div>
-                `;
-                
-                document.body.appendChild(notification);
-                
-                // Animate in
-                setTimeout(() => {
-                    notification.style.transform = 'translateX(0)';
-                }, 10);
-                
-                // Remove after 3 seconds
-                setTimeout(() => {
-                    notification.style.transform = 'translateX(100%)';
-                    setTimeout(() => {
-                        document.body.removeChild(notification);
-                    }, 300);
-                }, 3000);
-            }
-            
             // Refresh button functionality
             const refreshBtn = document.getElementById('refreshBtn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', function() {
                     this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Refreshing...';
                     this.disabled = true;
-                    // Reloads the page to clear filters or get new data
                     window.location.href = "{{ route('dashboard') }}";
                 });
             }
         });
     </script>
-    
+
     <style>
         .line-clamp-2 {
             display: -webkit-box;
@@ -372,42 +359,9 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #c7d2fe;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a5b4fc;
-        }
-        
-        /* Dropdown animation */
-        #dropdownMenu {
-            animation: fadeIn 0.2s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
     </style>
+
+
 </body>
+
 </html>
